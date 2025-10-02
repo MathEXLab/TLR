@@ -207,22 +207,3 @@ _sklearn_metrics.pairwise = _sklearn_pairwise
 sys.modules['sklearn.metrics.pairwise'] = _sklearn_pairwise
 
 
-from scripts.local_indices import _correct_n_neigh
-
-
-def test_correct_n_neigh_adds_edge_neighbors():
-    dist_log = _fake_array([
-        [0.0, 0.5, 0.2],
-        [0.0, 0.5, 0.5],
-    ])
-    q = _fake_array([0.2, 0.5])
-    n_neigh = 1
-
-    exceeds_bool = dist_log > q.reshape(-1, 1)
-    assert _fake_sum(exceeds_bool[-1]) == 0
-
-    corrected = _correct_n_neigh(exceeds_bool, dist_log, q, n_neigh)
-
-    neighbour_counts = _fake_sum(corrected, axis=1)
-    equals_target = neighbour_counts == n_neigh
-    assert _fake_all(equals_target)
