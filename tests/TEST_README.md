@@ -15,14 +15,14 @@ The regression test uses the `../data/datasets/lorenz_small.txt` dataset to veri
 First, install the required dependencies:
 
 ```bash
-pip install -r test/requirements.txt
+pip install -r tests/requirements.txt
 ```
 
 ## Running the Test
 
 ### Option 1: Using pytest from TLR root directory
 ```bash
-pytest test/test_regression.py -v
+pytest tests/test_regression.py -v
 ```
 
 ### Option 2: From test directory
@@ -38,7 +38,7 @@ pytest test_regression.py -v
 
 ### Option 4: Run specific test
 ```bash
-pytest test/test_regression.py::test_data_loading -v
+pytest tests/test_regression.py::test_data_loading -v
 ```
 
 ## Test Details
