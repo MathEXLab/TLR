@@ -1,4 +1,6 @@
 # TLR: Time-Lagged Recurrence ($\alpha_\eta$)
+[![Daily Regression Tests](https://github.com/ChenyuDongNUS/TLR/actions/workflows/daily-regression.yml/badge.svg)](https://github.com/ChenyuDongNUS/TLR/actions/workflows/daily-regression.yml)
+[![DOI](https://img.shields.io/badge/DOI-10.1073%2Fpnas.2420252122-blue)](https://doi.org/10.1073/pnas.2420252122)
 
 Python code and Jupyter notebooks support the PNAS manuscript "Time-lagged recurrence: A data-driven method to estimate the predictability of dynamical systems," which introduces the Time-Lagged Recurrence (TLR) as a novel predictability index.
 
