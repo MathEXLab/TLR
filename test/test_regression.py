@@ -11,14 +11,19 @@ import tempfile
 import shutil
 import pytest
 
+# Current file path
+CWD = os.getcwd()
+CFD = os.path.dirname(os.path.realpath(__file__))
+
 # Add scripts directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+sys.path.append(os.path.join(CFD, "..", "scripts"))
 import local_indices as li
+
 
 @pytest.fixture
 def test_data():
     """Load test data from lorenz_small.txt"""
-    test_data_path = "../data/datasets/lorenz_small.txt"
+    test_data_path = os.path.join(CFD, "../data/datasets/lorenz_small.txt")
     assert os.path.exists(test_data_path), f"Test data file not found: {test_data_path}"
     
     Y = np.loadtxt(test_data_path)
