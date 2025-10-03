@@ -14,7 +14,6 @@ import logging
 logging.captureWarnings(True)
 
 
-
 def compute_exceeds(X, filepath, filename, 
                     ql = 0.99, n_jobs=1, theiler_len=0, p_value_exp=None,
                     exp_test_method='anderson', save_full=False, **kwargs):
@@ -24,7 +23,7 @@ def compute_exceeds(X, filepath, filename,
     """
 
     # Create results directory if it doesn't exist   
-    results_path = os.path.join(filepath, "results")
+    results_path = os.path.join(filepath, f"results_{filename}")
     if not os.path.exists(results_path):
         os.makedirs(results_path)
 
@@ -66,7 +65,7 @@ def compute_exceeds(X, filepath, filename,
 
     ## calc quantile as with mquantiles with alphap=0.5 and betap=0.5
     # last 'time_lag' states do not have this index
-    q = np.quantile(dist_log, ql, axis=1, interpolation='midpoint')
+    q = np.quantile(dist_log, ql, axis=1, method='midpoint')
 
     # neighbors: 1; non-neighbors: 0
     # n_neigh = int(np.round(n_samples*(1-ql))) #
@@ -87,14 +86,13 @@ def compute_exceeds(X, filepath, filename,
     return dist, exceeds, exceeds_idx, exceeds_bool
 
 
-
 def compute_d1(exceeds, filepath, filename, ql=0.99, theiler_len=0):
     """
     Compute the local dimension d1. 
     """
     d1 = 1 / np.mean(exceeds, axis=1)
     # Create results directory if it doesn't exist
-    results_path = os.path.join(filepath, "results")
+    results_path = os.path.join(filepath, f"results_{filename}")
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     
@@ -102,7 +100,6 @@ def compute_d1(exceeds, filepath, filename, ql=0.99, theiler_len=0):
     fname = f'{results_path}/{filename}_d1_{ql}_{theiler_len}.npy'
     np.save(fname, d1)
     return d1
-
 
 
 def compute_theta(idx, filepath, filename, ql=0.99, theiler_len=0,
@@ -142,7 +139,7 @@ def compute_theta(idx, filepath, filename, ql=0.99, theiler_len=0,
         theta = _calc_sueveges(idx, ql)
     
     # Create results directory if it doesn't exist
-    results_path = os.path.join(filepath, "results")
+    results_path = os.path.join(filepath, f"results_{filename}")
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     
@@ -191,7 +188,7 @@ def compute_alphat(dist, exceeds_bool, filepath, filename, time_lag,
 
     # save alphat_dict
     # Create results directory if it doesn't exist
-    results_path = os.path.join(filepath, "results")
+    results_path = os.path.join(filepath, f"results_{filename}")
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     
