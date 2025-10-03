@@ -9,7 +9,7 @@ import scipy.stats as sc
 import statsmodels.api as sm
 import multiprocessing as mp
 import sklearn.metrics.pairwise as skmp
-import pickle
+import json
 import logging
 logging.captureWarnings(True)
 
@@ -22,6 +22,12 @@ def compute_exceeds(X, filepath, filename,
     Compute the predictability of a collection of states: X
     save_full: save the full matrix of exceedances (True) or only the indices (False)
     """
+
+    # Create results directory if it doesn't exist   
+    results_path = os.path.join(filepath, "results")
+    if not os.path.exists(results_path):
+        os.makedirs(results_path)
+
     ## Read kwargs
     metric = kwargs.get("metric")
     if metric is None: metric = "euclidean"
@@ -45,8 +51,9 @@ def compute_exceeds(X, filepath, filename,
         np.fill_diagonal(dist[:-i, i:], sys.float_info.max)  
         np.fill_diagonal(dist[i:, :-i], sys.float_info.max)
     np.fill_diagonal(dist, sys.float_info.max)
+
     if save_full:
-        fname = f'{filepath}/{filename}_dist_{ql}_{theiler_len}.npy'
+        fname = f'{results_path}/{filename}_dist_{ql}_{theiler_len}.npy'
         np.save(fname, dist)
         print(f'Saved distance matrix to {fname}')
     else:
@@ -70,11 +77,11 @@ def compute_exceeds(X, filepath, filename,
     exceeds_idx = np.argwhere(exceeds_bool).reshape(n_samples,n_neigh,2)[:,:,1]
     row_idx = np.arange(n_samples)[:,None]
     exceeds = dist_log[row_idx,exceeds_idx] - q[:, None]
-
+    
     # save matrix
-    fname = f'{filepath}/{filename}_exceeds_idx_{ql}_{theiler_len}.npy'
+    fname = f'{results_path}/{filename}_exceeds_idx_{ql}_{theiler_len}.npy'
     np.save(fname, exceeds_idx)
-    fname = f'{filepath}/{filename}_exceeds_{ql}_{theiler_len}.npy'
+    fname = f'{results_path}/{filename}_exceeds_{ql}_{theiler_len}.npy'
     np.save(fname, exceeds)
 
     return dist, exceeds, exceeds_idx, exceeds_bool
@@ -86,8 +93,13 @@ def compute_d1(exceeds, filepath, filename, ql=0.99, theiler_len=0):
     Compute the local dimension d1. 
     """
     d1 = 1 / np.mean(exceeds, axis=1)
+    # Create results directory if it doesn't exist
+    results_path = os.path.join(filepath, "results")
+    if not os.path.exists(results_path):
+        os.makedirs(results_path)
+    
     # save d1
-    fname = f'{filepath}/{filename}_d1_{ql}_{theiler_len}.npy'
+    fname = f'{results_path}/{filename}_d1_{ql}_{theiler_len}.npy'
     np.save(fname, d1)
     return d1
 
@@ -129,8 +141,13 @@ def compute_theta(idx, filepath, filename, ql=0.99, theiler_len=0,
         print('Using default Sueveges method.')
         theta = _calc_sueveges(idx, ql)
     
+    # Create results directory if it doesn't exist
+    results_path = os.path.join(filepath, "results")
+    if not os.path.exists(results_path):
+        os.makedirs(results_path)
+    
     # save theta
-    fname = f'{filepath}/{filename}_theta_{ql}_{theiler_len}.npy'
+    fname = f'{results_path}/{filename}_theta_{ql}_{theiler_len}.npy'
     np.save(fname, theta)
     return theta
 
@@ -173,8 +190,24 @@ def compute_alphat(dist, exceeds_bool, filepath, filename, time_lag,
             alphat_dict[lag] = dist_sum_in / dist_sum_all
 
     # save alphat_dict
-    with open(f'{filepath}/{filename}_alphat_max{np.array(time_lag).max()}_{ql}_{theiler_len}_{l}.pkl', 'wb') as f:
-        pickle.dump(alphat_dict, f)
+    # Create results directory if it doesn't exist
+    results_path = os.path.join(filepath, "results")
+    if not os.path.exists(results_path):
+        os.makedirs(results_path)
+    
+    # Convert numpy arrays to lists for JSON serialization
+    def convert_numpy_to_list(obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, dict):
+            return {k: convert_numpy_to_list(v) for k, v in obj.items()}
+        else:
+            return obj
+    
+    json_alphat_dict = convert_numpy_to_list(alphat_dict)
+    
+    with open(f'{results_path}/{filename}_alphat_max{np.array(time_lag).max()}_{ql}_{theiler_len}_{l}.json', 'w') as f:
+        json.dump(json_alphat_dict, f, indent=2)
         
 
 

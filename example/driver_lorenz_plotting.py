@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 import numpy as np
-import pickle
+import json
 np.random.seed(624)
 
 # custom libraries
@@ -36,13 +36,15 @@ if __name__ == '__main__':
 	max_tau = np.max(tau_list)
 	
 	# # load local index (new version)
-	alpha_dict = pickle.load(open(os.path.join(filepath, filename + \
-		f'_alphat_max{max_tau}_{ql}_{win}_{l}.pkl'), 'rb'))
+	results_path = os.path.join(filepath, "results")
+	with open(os.path.join(results_path, filename + \
+		f'_alphat_max{max_tau}_{ql}_{win}_{l}.json'), 'r') as f:
+		alpha_dict = json.load(f)
 
 	alphat = np.empty([100000, len(tau_list)])
 	
 	for (i, eta) in enumerate(tau_list):
-		alphat[:-eta, i] = alpha_dict[eta]
+		alphat[:-eta, i] = alpha_dict[str(eta)]
 
 	post.plot_attractor_pdf(
      	filepath=filepath, filename=filename, ql=ql, alphat=alphat,

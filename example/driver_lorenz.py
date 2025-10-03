@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
 	# compute indices
 	dist, exceeds, exceeds_idx, exceeds_bool = li.compute_exceeds(
-		X, filepath=filepath, filename=filename, ql=ql, n_jobs=50,
+		X, filepath=filepath, filename=filename, ql=ql, n_jobs=20,
 		theiler_len=win, save_full=True)
 	
 	print('Shape of dist:', dist.shape)

@@ -115,7 +115,9 @@ def plot_indices_horizon(filepath, filename, ql, theiler,
 	plt.ylabel(r'$\alpha_\eta$')
 	plt.tight_layout()
 	# save figure
-	fout = os.path.join(filepath, filename+'_indices_horizon_loglog'\
+	fpath = os.path.join(filepath, "figures")
+	if not os.path.exists(fpath): os.makedirs(fpath)
+	fout = os.path.join(fpath, filename+'_indices_horizon_loglog'\
 		+str(ql)+'_'+str(theiler)+'.png')
 	plt.savefig(fout, dpi=300)
 	plt.show()
@@ -394,7 +396,9 @@ def plot_pdf(filepath, filename, ql, theiler,
 	ax.set_ylabel('PDF', fontsize=font_size+2)
 	plt.tight_layout()
 	# Save the figure
-	fout = os.path.join(filepath, filename+'_pdf_'+str(ql)+'.png')
+	fpath = os.path.join(filepath, "figures")
+	if not os.path.exists(fpath): os.makedirs(fpath)
+	fout = os.path.join(fpath, filename+'_pdf_'+str(ql)+'.png')
 	plt.savefig(fout, dpi=300)
 
 def plot_attractor_pdf_2D(filepath, filename, ql, alphat, 
@@ -476,7 +480,9 @@ def plot_attractor_pdf_2D(filepath, filename, ql, alphat,
     fig.text(0.49+a, 0.322, '(f)', ha='center', va='center', fontsize=font_size+5)
     # Save the figure
     # plt.tight_layout()
-    fout = os.path.join(filepath, filename+'_attractor_pdf_'+str(ql)+'_'+str(l)+'.jpg')
+    fpath = os.path.join(filepath, "figures")
+    if not os.path.exists(fpath): os.makedirs(fpath)
+    fout = os.path.join(fpath, filename+'_attractor_pdf_'+str(ql)+'_'+str(l)+'.jpg')
     plt.savefig(fout, dpi=450)
 
 
@@ -567,7 +573,9 @@ def plot_attractor_pdf(filepath, filename, ql, alphat,
 
 	# Save the figure
 	# plt.tight_layout()
-	fout = os.path.join(filepath, filename+'_attractor_pdf_'+str(ql)+'_'+str(l)+'.jpg')
+	fpath = os.path.join(filepath, "figures")
+	if not os.path.exists(fpath): os.makedirs(fpath)
+	fout = os.path.join(fpath, filename+'_attractor_pdf_'+str(ql)+'_'+str(l)+'.jpg')
 	fig.savefig(fout, dpi=450, bbox_inches='tight')
 
 def plot_attractor_pdf_sup(filepath, filename, ql, alphat, 
@@ -656,7 +664,9 @@ def plot_attractor_pdf_sup(filepath, filename, ql, alphat,
 
 	# Save the figure
 	# plt.tight_layout()
-	fout = os.path.join(filepath, filename+'_attractor_pdf_'+str(ql)+'_'+str(l)+'.jpg')
+	fpath = os.path.join(filepath, "figures")
+	if not os.path.exists(fpath): os.makedirs(fpath)
+	fout = os.path.join(fpath, filename+'_attractor_pdf_'+str(ql)+'_'+str(l)+'.jpg')
 	fig.savefig(fout, dpi=450, bbox_inches='tight')
 
 ## ----------------------------------
