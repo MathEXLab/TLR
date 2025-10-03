@@ -1,7 +1,9 @@
 # TLR: Time-Lagged Recurrence ($\alpha_\eta$)
 
 Python code and Jupyter notebooks support the PNAS manuscript "Time-lagged recurrence: A data-driven method to estimate the predictability of dynamical systems," which introduces the Time-Lagged Recurrence (TLR) as a novel predictability index.
+
 The paper is available (free access) here: https://www.pnas.org/doi/10.1073/pnas.2420252122
+
 Citation to the paper: 
 ```
 @article{dong2025time,
