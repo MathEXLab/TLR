@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 import numpy as np
-import json
+import xarray as xr
 np.random.seed(624)
 
 # custom libraries
@@ -36,16 +36,14 @@ if __name__ == '__main__':
 	max_tau = np.max(tau_list)
 	
 	# # load local index (new version)
-	results_path = os.path.join(filepath, "results")
-	with open(os.path.join(results_path, filename + \
-		f'_alphat_max{max_tau}_{ql}_{win}_{l}.json'), 'r') as f:
-		alpha_dict = json.load(f)
+        results_path = os.path.join(filepath, f"results_{filename}")
+        nc_path = os.path.join(results_path,
+                f"{filename}_alphat_max{max_tau}_{ql}_{win}_{l}.nc")
+        ds = xr.open_dataset(nc_path)
+        alphat_da = ds["alphat"].transpose("time_index", "lag")
+        alphat = np.asarray(alphat_da.sel(lag=tau_list).values)
+        ds.close()
 
-	alphat = np.empty([100000, len(tau_list)])
-	
-	for (i, eta) in enumerate(tau_list):
-		alphat[:-eta, i] = alpha_dict[str(eta)]
-
-	post.plot_attractor_pdf(
-     	filepath=filepath, filename=filename, ql=ql, alphat=alphat,
-		tau_list=tau_list, tau_l_list=tau_l_list, l=l)
+        post.plot_attractor_pdf(
+        filepath=filepath, filename=filename, ql=ql, alphat=alphat,
+                tau_list=tau_list, tau_l_list=tau_l_list, l=l)

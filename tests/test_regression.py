@@ -6,7 +6,7 @@ Pytest-based regression test for TLR repository using lorenz_small.txt
 import os
 import sys
 import numpy as np
-import json
+import xarray as xr
 import tempfile
 import shutil
 import pytest
@@ -104,24 +104,29 @@ def test_tlr_computation(test_data, test_params, temp_dir):
     results_path = os.path.join(test_filepath, f"results_{params['filename']}")
     assert os.path.exists(results_path), "Results directory should be created"
     
-    # Check JSON file
-    json_file = os.path.join(results_path, 
-                           f"{params['filename']}_alphat_max{max(params['tau_list'])}_{params['ql']}_{params['theiler_len']}_{params['l']}.json")
-    assert os.path.exists(json_file), "JSON file should be created"
-    
-    # Load and verify JSON content
-    with open(json_file, 'r') as f:
-        alpha_dict = json.load(f)
-    
+    # Check NetCDF file
+    nc_file = os.path.join(
+        results_path,
+        f"{params['filename']}_alphat_max{max(params['tau_list'])}_{params['ql']}"
+        f"_{params['theiler_len']}_{params['l']}.nc",
+    )
+    assert os.path.exists(nc_file), "NetCDF file should be created"
+
+    # Load and verify NetCDF content
+    ds = xr.open_dataset(nc_file)
+    assert "alphat" in ds, "NetCDF file should contain 'alphat' variable"
+
     # Verify all tau values are present
     for tau in params['tau_list']:
-        assert str(tau) in alpha_dict, f"Missing tau value {tau} in results"
-        assert len(alpha_dict[str(tau)]) > 0, f"Empty data for tau value {tau}"
-        
+        assert tau in ds["lag"].values, f"Missing tau value {tau} in results"
+        alpha_values = ds["alphat"].sel(lag=tau).dropna("time_index").values
+        assert alpha_values.size > 0, f"Empty data for tau value {tau}"
+
         # Check alpha values are in valid range
-        alpha_values = np.array(alpha_dict[str(tau)])
         assert np.all(alpha_values >= 0) and np.all(alpha_values <= 1), \
             f"Alpha values out of range [0,1] for tau {tau}"
+
+    ds.close()
 
 def test_alpha_statistics(test_data, test_params, temp_dir):
     """Test that alpha statistics are reasonable"""
@@ -141,15 +146,16 @@ def test_alpha_statistics(test_data, test_params, temp_dir):
     
     # Load results
     results_path = os.path.join(test_filepath, f"results_{params['filename']}")
-    json_file = os.path.join(results_path, 
-                           f"{params['filename']}_alphat_max{max(params['tau_list'])}_{params['ql']}_{params['theiler_len']}_{params['l']}.json")
-    
-    with open(json_file, 'r') as f:
-        alpha_dict = json.load(f)
+    nc_file = os.path.join(
+        results_path,
+        f"{params['filename']}_alphat_max{max(params['tau_list'])}_{params['ql']}"
+        f"_{params['theiler_len']}_{params['l']}.nc",
+    )
+    ds = xr.open_dataset(nc_file)
     
     # Check statistics for each tau
     for tau in params['tau_list']:
-        alpha_values = np.array(alpha_dict[str(tau)])
+        alpha_values = ds["alphat"].sel(lag=tau).dropna("time_index").values
         mean_alpha = np.mean(alpha_values)
         std_alpha = np.std(alpha_values)
         
@@ -160,9 +166,12 @@ def test_alpha_statistics(test_data, test_params, temp_dir):
         # Check that alpha decreases with increasing tau (typical behavior)
         if tau > params['tau_list'][0]:
             prev_tau = params['tau_list'][params['tau_list'].index(tau) - 1]
-            prev_mean = np.mean(alpha_dict[str(prev_tau)])
+            prev_values = ds["alphat"].sel(lag=prev_tau).dropna("time_index").values
+            prev_mean = np.mean(prev_values)
             assert mean_alpha <= prev_mean, \
                 f"Alpha should generally decrease with tau: tau {prev_tau} mean={prev_mean:.4f}, tau {tau} mean={mean_alpha:.4f}"
+
+    ds.close()
 
 # Pytest will automatically discover and run test functions
 # No need for main block when using pytest

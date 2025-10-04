@@ -9,7 +9,6 @@ import scipy.stats as sc
 import statsmodels.api as sm
 import multiprocessing as mp
 import sklearn.metrics.pairwise as skmp
-import json
 import logging
 logging.captureWarnings(True)
 
@@ -96,9 +95,16 @@ def compute_d1(exceeds, filepath, filename, ql=0.99, theiler_len=0):
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     
-    # save d1
-    fname = f'{results_path}/{filename}_d1_{ql}_{theiler_len}.npy'
-    np.save(fname, d1)
+    # save d1 as NetCDF
+    d1_da = xr.DataArray(
+        d1,
+        dims=("sample",),
+        coords={"sample": np.arange(d1.size)},
+        name="d1",
+        attrs={"ql": ql, "theiler_len": theiler_len},
+    )
+    fname = f'{results_path}/{filename}_d1_{ql}_{theiler_len}.nc'
+    d1_da.to_dataset().to_netcdf(fname)
     return d1
 
 
@@ -143,9 +149,16 @@ def compute_theta(idx, filepath, filename, ql=0.99, theiler_len=0,
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     
-    # save theta
-    fname = f'{results_path}/{filename}_theta_{ql}_{theiler_len}.npy'
-    np.save(fname, theta)
+    # save theta as NetCDF
+    theta_da = xr.DataArray(
+        theta,
+        dims=("sample",),
+        coords={"sample": np.arange(theta.size)},
+        name="theta",
+        attrs={"ql": ql, "theiler_len": theiler_len, "method": method},
+    )
+    fname = f'{results_path}/{filename}_theta_{ql}_{theiler_len}.nc'
+    theta_da.to_dataset().to_netcdf(fname)
     return theta
 
 
@@ -186,25 +199,34 @@ def compute_alphat(dist, exceeds_bool, filepath, filename, time_lag,
             dist_sum_all = np.nansum(np.where(exceeds_bool_lag, dist[lag:, :], np.nan) ** l, axis=1)      # All forward neighbors
             alphat_dict[lag] = dist_sum_in / dist_sum_all
 
-    # save alphat_dict
+    # save alphat_dict as NetCDF
     # Create results directory if it doesn't exist
     results_path = os.path.join(filepath, f"results_{filename}")
     if not os.path.exists(results_path):
         os.makedirs(results_path)
-    
-    # Convert numpy arrays to lists for JSON serialization
-    def convert_numpy_to_list(obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, dict):
-            return {k: convert_numpy_to_list(v) for k, v in obj.items()}
-        else:
-            return obj
-    
-    json_alphat_dict = convert_numpy_to_list(alphat_dict)
-    
-    with open(f'{results_path}/{filename}_alphat_max{np.array(time_lag).max()}_{ql}_{theiler_len}_{l}.json', 'w') as f:
-        json.dump(json_alphat_dict, f, indent=2)
+
+    sorted_lags = np.array(sorted(set(time_lag)))
+    min_lag = int(sorted_lags.min()) if len(sorted_lags) > 0 else 0
+    time_index = np.arange(min_lag, n_samples)
+    alphat_array = np.full((len(sorted_lags), len(time_index)), np.nan)
+
+    for i, lag in enumerate(sorted_lags):
+        values = np.asarray(alphat_dict[lag], dtype=float)
+        start_idx = lag - min_lag
+        alphat_array[i, start_idx:start_idx + len(values)] = values
+
+    alphat_da = xr.DataArray(
+        alphat_array,
+        dims=("lag", "time_index"),
+        coords={"lag": sorted_lags, "time_index": time_index},
+        name="alphat",
+        attrs={"ql": ql, "theiler_len": theiler_len, "l": l},
+    )
+    fname = (
+        f"{results_path}/{filename}_alphat_max{np.array(time_lag).max()}_"
+        f"{ql}_{theiler_len}_{l}.nc"
+    )
+    alphat_da.to_dataset().to_netcdf(fname)
         
 
 
