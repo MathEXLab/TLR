@@ -36,7 +36,7 @@ def test_data():
     
     Y = np.loadtxt(test_data_path)
     assert Y.shape[1] >= 4, f"Invalid data shape: {Y.shape}"
-    
+
     t = Y[:, 0]
     X = Y[:, 1:]
     return t, X
@@ -66,7 +66,7 @@ def temp_dir():
 
 def test_data_loading(test_data):
     """Test that test data can be loaded correctly"""
-    _, X = test_data
+    t, X = test_data
     assert X.shape[0] > 0, "Data should have at least one row"
     assert X.shape[1] == 3, "Lorenz data should have 3 spatial dimensions"
     assert len(t) == X.shape[0], "Time and spatial data should have same length"
