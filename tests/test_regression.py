@@ -3,6 +3,7 @@
 Pytest-based regression test for TLR repository using lorenz_small.txt
 """
 
+import json
 import os
 import sys
 import numpy as np
@@ -10,6 +11,13 @@ import xarray as xr
 import tempfile
 import shutil
 import pytest
+
+
+def load_regression_checks():
+    """Load sampled Lorenz regression reference values from the JSON fixture."""
+    fixture_path = os.path.join(CFD, "fixtures", "lorenz_small_regression_checks.json")
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 # Current file path
 CWD = os.getcwd()
@@ -58,7 +66,7 @@ def temp_dir():
 
 def test_data_loading(test_data):
     """Test that test data can be loaded correctly"""
-    t, X = test_data
+    _, X = test_data
     assert X.shape[0] > 0, "Data should have at least one row"
     assert X.shape[1] == 3, "Lorenz data should have 3 spatial dimensions"
     assert len(t) == X.shape[0], "Time and spatial data should have same length"
@@ -172,6 +180,97 @@ def test_alpha_statistics(test_data, test_params, temp_dir):
                 f"Alpha should generally decrease with tau: tau {prev_tau} mean={prev_mean:.4f}, tau {tau} mean={mean_alpha:.4f}"
 
     ds.close()
+
+
+def test_tlr_results_are_reproducible(test_data, test_params, temp_dir):
+    """Ensure the Lorenz pipeline reproduces the stored regression results."""
+    t, X = test_data
+    params = test_params
+    test_filepath = temp_dir
+
+    expected = load_regression_checks()
+
+    dist, exceeds, exceeds_idx, exceeds_bool = li.compute_exceeds(
+        X, filepath=test_filepath, filename=params['filename'],
+        ql=params['ql'], n_jobs=1, theiler_len=params['theiler_len'], save_full=False
+    )
+
+    d1 = li.compute_d1(
+        exceeds, test_filepath, params['filename'],
+        ql=params['ql'], theiler_len=params['theiler_len']
+    )
+    theta = li.compute_theta(
+        exceeds_idx, test_filepath, params['filename'],
+        ql=params['ql'], theiler_len=params['theiler_len'], method='sueveges'
+    )
+
+    li.compute_alphat(
+        dist, exceeds_bool, test_filepath, params['filename'],
+        params['tau_list'], ql=params['ql'],
+        theiler_len=params['theiler_len'], l=params['l']
+    )
+
+    results_path = os.path.join(test_filepath, f"results_{params['filename']}")
+    nc_file = os.path.join(
+        results_path,
+        f"{params['filename']}_alphat_max{max(params['tau_list'])}_{params['ql']}"
+        f"_{params['theiler_len']}_{params['l']}.nc",
+    )
+
+    ds = xr.open_dataset(nc_file)
+    try:
+        alphat = ds["alphat"].values
+        lag = ds["lag"].values
+        time_index = ds["time_index"].values
+    finally:
+        ds.close()
+
+    d1_expected = expected["d1"]
+    d1_indices = d1_expected["indices"]
+    np.testing.assert_allclose(
+        d1[d1_indices], d1_expected["values"], rtol=1e-6, atol=1e-6
+    )
+    assert float(np.mean(d1)) == pytest.approx(
+        d1_expected["mean"], rel=1e-6, abs=1e-6
+    )
+    assert float(np.std(d1)) == pytest.approx(
+        d1_expected["std"], rel=1e-6, abs=1e-6
+    )
+
+    theta_expected = expected["theta"]
+    theta_indices = theta_expected["indices"]
+    np.testing.assert_allclose(
+        theta[theta_indices], theta_expected["values"], rtol=1e-6, atol=1e-6
+    )
+    assert float(np.mean(theta)) == pytest.approx(
+        theta_expected["mean"], rel=1e-6, abs=1e-6
+    )
+    assert float(np.std(theta)) == pytest.approx(
+        theta_expected["std"], rel=1e-6, abs=1e-6
+    )
+
+    alphat_expected = expected["alphat"]
+    for sample in alphat_expected["samples"]:
+        lag_idx = sample["lag_index"]
+        time_idx = sample["time_index"]
+        assert float(alphat[lag_idx, time_idx]) == pytest.approx(
+            sample["value"], rel=1e-6, abs=1e-6
+        )
+
+    for lag_idx, expected_mean in enumerate(alphat_expected["mean_by_lag"]):
+        assert float(np.nanmean(alphat[lag_idx])) == pytest.approx(
+            expected_mean, rel=1e-6, abs=1e-6
+        )
+        assert float(np.nanstd(alphat[lag_idx])) == pytest.approx(
+            alphat_expected["std_by_lag"][lag_idx], rel=1e-6, abs=1e-6
+        )
+
+    assert lag.tolist() == expected["lag"]
+
+    time_index_expected = expected["time_index"]
+    assert int(time_index[0]) == time_index_expected["first"]
+    assert int(time_index[-1]) == time_index_expected["last"]
+    assert int(time_index.size) == time_index_expected["count"]
 
 # Pytest will automatically discover and run test functions
 # No need for main block when using pytest
