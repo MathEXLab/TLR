@@ -68,13 +68,13 @@ def compute_exceeds(X, filepath, filename,
 
     # neighbors: 1; non-neighbors: 0
     # n_neigh = int(np.round(n_samples*(1-ql))) #
-    exceeds_bool = dist_log > q.reshape(-1,1)
+    exceeds_bool = dist_log > q.reshape(-1, 1)
     n_neigh = np.sum(exceeds_bool, axis=1).min()
     exceeds_bool = _correct_n_neigh(exceeds_bool, dist_log, q, n_neigh)
 
-    exceeds_idx = np.argwhere(exceeds_bool).reshape(n_samples,n_neigh,2)[:,:,1]
+    exceeds_idx = np.argwhere(exceeds_bool).reshape(n_samples, n_neigh, 2)[:,:,1]
     row_idx = np.arange(n_samples)[:,None]
-    exceeds = dist_log[row_idx,exceeds_idx] - q[:, None]
+    exceeds = dist_log[row_idx, exceeds_idx] - q[:, None]
     
     # save matrix
     fname = f'{results_path}/{filename}_exceeds_idx_{ql}_{theiler_len}.npy'
@@ -207,13 +207,12 @@ def compute_alphat(dist, exceeds_bool, filepath, filename, time_lag,
 
     sorted_lags = np.array(sorted(set(time_lag)))
     min_lag = int(sorted_lags.min()) if len(sorted_lags) > 0 else 0
-    time_index = np.arange(min_lag, n_samples)
+    time_index = np.arange(0, n_samples - min_lag)
     alphat_array = np.full((len(sorted_lags), len(time_index)), np.nan)
 
     for i, lag in enumerate(sorted_lags):
         values = np.asarray(alphat_dict[lag], dtype=float)
-        start_idx = lag - min_lag
-        alphat_array[i, start_idx:start_idx + len(values)] = values
+        alphat_array[i, :len(values)] = values
 
     alphat_da = xr.DataArray(
         alphat_array,
@@ -260,6 +259,6 @@ def _correct_n_neigh(exceeds_bool, dist, q, n_neigh):
     idx_edge = np.where(np.sum(exceeds_bool, axis=1)!=n_neigh)[0]
     for i in idx_edge:
         idx_add = np.where(exceeds_bool[i,:]!=exceeds_bool_geq[i,:])[0][0]
-        exceeds_bool[i,idx_add] = True
+        exceeds_bool[i, idx_add] = True
     
     return exceeds_bool

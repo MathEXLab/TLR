@@ -36,14 +36,16 @@ if __name__ == '__main__':
 	max_tau = np.max(tau_list)
 	
 	# # load local index (new version)
-        results_path = os.path.join(filepath, f"results_{filename}")
-        nc_path = os.path.join(results_path,
-                f"{filename}_alphat_max{max_tau}_{ql}_{win}_{l}.nc")
-        ds = xr.open_dataset(nc_path)
-        alphat_da = ds["alphat"].transpose("time_index", "lag")
-        alphat = np.asarray(alphat_da.sel(lag=tau_list).values)
-        ds.close()
+	results_path = os.path.join(filepath, f"results_{filename}")
+	nc_path = os.path.join(results_path,
+			f"{filename}_alphat_max{max_tau}_{ql}_{win}_{l}.nc")
+	ds = xr.open_dataset(nc_path)
+	alphat_da = ds["alphat"].transpose("time_index", "lag")
+	alphat = np.asarray(alphat_da.sel(lag=tau_list).values)
+	ds.close()
+	print('Loaded alphat shape: ', alphat.shape)
 
-        post.plot_attractor_pdf(
-        filepath=filepath, filename=filename, ql=ql, alphat=alphat,
-                tau_list=tau_list, tau_l_list=tau_l_list, l=l)
+	post.plot_attractor_pdf(
+			filepath=filepath, filename=filename, ql=ql, alphat=alphat,
+			tau_list=tau_list, tau_l_list=tau_l_list, l=l
+			)

@@ -40,22 +40,22 @@ if __name__ == '__main__':
 	print("Loaded data shape: ", X.shape)
 
 	# compute indices
-	dist, exceeds, exceeds_idx, exceeds_bool = li.compute_exceeds(
-		X, filepath=filepath, filename=filename, ql=ql, n_jobs=20,
-		theiler_len=win, save_full=True)
+	# dist, exceeds, exceeds_idx, exceeds_bool = li.compute_exceeds(
+	# 	X, filepath=filepath, filename=filename, ql=ql, n_jobs=20,
+	# 	theiler_len=win, save_full=True)
 	
-	print('Shape of dist:', dist.shape)
-	print('Shape of exceeds:', exceeds.shape)
-	print('Shape of exceeds_idx:', exceeds_idx.shape)
-	print('Shape of exceeds_bool:', exceeds_bool.shape)
+	# print('Shape of dist:', dist.shape)
+	# print('Shape of exceeds:', exceeds.shape)
+	# print('Shape of exceeds_idx:', exceeds_idx.shape)
+	# print('Shape of exceeds_bool:', exceeds_bool.shape)
 
 	# if you do not want to recompute exceedances because they are too
 	# expensive to calculate and already saved earlier...
 	
-	# dist = 0
-	# exceeds_idx = np.load(f'{filepath}/{filename}_exceeds_idx_{ql}_{win}.npy')
-	# exceeds_bool = li.create_bool_from_idx(exceeds_idx)
-	# print('Convert exceeds from index. Shape: ', exceeds_bool.shape)
+	dist = 0
+	exceeds_idx = np.load(f'{filepath}/results_{filename}/{filename}_exceeds_idx_{ql}_{win}.npy')
+	exceeds_bool = li.create_bool_from_idx(exceeds_idx)
+	print('Convert exceeds from index. Shape: ', exceeds_bool.shape)
 
 	# The other two dynamical indices (local dimension and persistence)
 	# d1 = li.compute_d1(exceeds, filepath, filename, ql=ql, theiler_len=win)

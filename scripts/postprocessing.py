@@ -499,8 +499,9 @@ def plot_attractor_pdf(filepath, filename, ql, alphat,
 	Y = np.loadtxt(os.path.join(filepath, filename+'.txt'))
 	t = Y[:,0]
 	X = Y[:,1:]
-	n_vars = X.shape[1]
-	n_samples = len(t)
+
+	print(alphat)
+	tau_list = np.array(tau_list)
 	assert len(tau_list) == 5, 'The tau_list must have 5 elements'
 	assert len(tau_list) == len(tau_l_list), 'tau_list and tau_l_list must have the same length'
 
@@ -523,8 +524,10 @@ def plot_attractor_pdf(filepath, filename, ql, alphat,
 	# Plot the attractor
 	for i, ax in enumerate(axes):
 		
+		end_idx = - (tau_list[i] - np.min(tau_list)) if tau_list[i] != np.min(tau_list) else X.shape[0]
+		print(end_idx)
 		im = ax.scatter(X[:-tau_list[i], 0], X[:-tau_list[i], 1], X[:-tau_list[i], 2], 
-		   c=alphat[:-tau_list[i], i], s=0.2, cmap=segmented_cmap, vmin=0, vmax=1)
+		   c=alphat[:end_idx, i], s=0.2, cmap=segmented_cmap, vmin=0, vmax=1)
 		ax.tick_params(labelsize=font_size, pad=0.08)
 		ax.text(0, 0, X[:-tau_list[i], 2].max()*1.6, rf'$\mathdefault{{\eta = {tau_l_list[i]}\eta_\ell}}$; $\mathdefault{{\overline{{\alpha}}_\eta={np.round(alphat[:, i].mean(), 2)}}}$',
 					fontsize=font_size+3, ha='center', va='center')
@@ -545,8 +548,11 @@ def plot_attractor_pdf(filepath, filename, ql, alphat,
 	c_list = ['k', 'r', 'b', 'g', 'm']
 	style = ['solid', 'dashed', 'dashdot', 'dotted', (0, (3, 1, 1, 1))]
 	ymax = -np.inf
+
 	for i, t_l in enumerate(tau_l_list):
-		data = alphat[:-tau_list[i], i]
+		end_idx = - (tau_list[i] - np.min(tau_list)) if tau_list[i] != np.min(tau_list) else X.shape[0]
+		data = alphat[:end_idx, i]
+		print(data)
 		kde  = gaussian_kde(data)
 		x_values = np.linspace(0, 1, 201)  
 		density  = kde(x_values) 
