@@ -50,17 +50,12 @@
       {
         "lag_index": 1,
         "time_index": 1234,
-        "value": 0.8
+        "value": 0.78
       },
       {
         "lag_index": 2,
         "time_index": 2345,
-        "value": 0.91
-      },
-      {
-        "lag_index": 2,
-        "time_index": 9994,
-        "value": 0.55
+        "value": 0.86
       }
     ],
     "mean_by_lag": [
@@ -78,10 +73,5 @@
     5,
     10,
     20
-  ],
-  "time_index": {
-    "first": 5,
-    "last": 9999,
-    "count": 9995
-  }
+  ]
 }

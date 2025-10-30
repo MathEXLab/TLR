@@ -500,7 +500,6 @@ def plot_attractor_pdf(filepath, filename, ql, alphat,
 	t = Y[:,0]
 	X = Y[:,1:]
 
-	print(alphat)
 	tau_list = np.array(tau_list)
 	assert len(tau_list) == 5, 'The tau_list must have 5 elements'
 	assert len(tau_list) == len(tau_l_list), 'tau_list and tau_l_list must have the same length'
@@ -525,7 +524,6 @@ def plot_attractor_pdf(filepath, filename, ql, alphat,
 	for i, ax in enumerate(axes):
 		
 		end_idx = - (tau_list[i] - np.min(tau_list)) if tau_list[i] != np.min(tau_list) else X.shape[0]
-		print(end_idx)
 		im = ax.scatter(X[:-tau_list[i], 0], X[:-tau_list[i], 1], X[:-tau_list[i], 2], 
 		   c=alphat[:end_idx, i], s=0.2, cmap=segmented_cmap, vmin=0, vmax=1)
 		ax.tick_params(labelsize=font_size, pad=0.08)
@@ -552,7 +550,6 @@ def plot_attractor_pdf(filepath, filename, ql, alphat,
 	for i, t_l in enumerate(tau_l_list):
 		end_idx = - (tau_list[i] - np.min(tau_list)) if tau_list[i] != np.min(tau_list) else X.shape[0]
 		data = alphat[:end_idx, i]
-		print(data)
 		kde  = gaussian_kde(data)
 		x_values = np.linspace(0, 1, 201)  
 		density  = kde(x_values) 
